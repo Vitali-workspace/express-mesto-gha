@@ -1,22 +1,22 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-
+//const cors = require('cors');
+const routerUsers = require('./routes/users');
+const routerCards = require('./routes/cards');
 
 
 const { PORT = 3000 } = process.env;
 const app = express();
-app.use(cors());
-
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
+//app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// на роуты пользователя и карточек
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
+app.use(routerUsers);
+app.use(routerCards);
+
 
 
 app.listen(PORT, () => {
