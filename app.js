@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-//const cors = require('cors');
+const cors = require('cors');
 const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
 
@@ -10,7 +10,7 @@ const { PORT = 3000 } = process.env;
 const app = express();
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-//app.use(cors());
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -22,7 +22,9 @@ app.use((req, res, next) => {
 app.use(routerUsers);
 app.use(routerCards);
 
-//! проверка на ошибки
+app.use('/*', (req, res) => {
+  res.status(404).send({ message: 'Запрошенные данные не найдены' })
+});
 
 app.listen(PORT, () => {
   console.log(`App работает в порте ${PORT}`);

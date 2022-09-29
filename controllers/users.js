@@ -1,22 +1,30 @@
 const User = require('../models/user');
 
+
 module.exports.getAllUsers = (req, res) => {
-  console.log('Получили всех пользователей');
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(err => res.status(500).send({ message: err.message }))
+    .catch(() => res.status(500).send({ message: 'внутренняя ошибка сервера' }))
 }
+
 
 module.exports.getUserId = (req, res) => {
   const userId = req.params.userId;
   User.findById(userId)
     .then((id) => {
-      console.log('получили id пользователя'); //!
+      if (!id) {
+        res.status(404).send({ message: 'пользователь не найден' });
+        return;
+      }
       res.send({ data: id })
     })
-    .catch(err => res.status(500).send({ message: err.message }))
-
-
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'ошибка в запросе' })
+      } else {
+        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+      }
+    })
 }
 
 
@@ -24,10 +32,15 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((newUser) => {
-      console.log('создался пользователь на сервер'); //!
       res.send({ data: newUser })
     })
-    .catch(err => res.status(500).send({ message: err.message }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'ошибка в запросе' })
+      } else {
+        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+      }
+    })
 }
 
 
@@ -36,10 +49,17 @@ module.exports.updateProfile = (req, res) => {
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
     .then((newUser) => {
-      console.log('обновился пользователь на сервере'); //!
       res.send({ data: newUser })
     })
-    .catch(err => res.status(500).send({ message: err.message }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'ошибка в запросе' })
+      } else if (err.name === 'CastError') {
+        res.status(400).send({ message: 'не удалось получить данные' })
+      } else {
+        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+      }
+    })
 }
 
 
@@ -48,8 +68,15 @@ module.exports.updateAvatar = (req, res) => {
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     .then((newAvatar) => {
-      console.log('обновился аватар на сервере'); //!
       res.send({ data: newAvatar })
     })
-    .catch(err => res.status(500).send({ message: err.message }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'ошибка в запросе' })
+      } else if (err.name === 'CastError') {
+        res.status(400).send({ message: 'не удалось получить данные' })
+      } else {
+        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+      }
+    })
 }
