@@ -27,7 +27,14 @@ module.exports.deleteCardOnId = (req, res) => {
   const id = req.params.cardId;
 
   Card.findByIdAndRemove(id)
-    .then(card => res.send({ data: card }))
+    .then((card) => {
+      if (!card) {
+        res.status(404).send({ message: 'Запрошенный id не найден' })
+        return;
+      }
+
+      res.send({ data: card })
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'ошибка в запросе' })
@@ -40,7 +47,14 @@ module.exports.deleteCardOnId = (req, res) => {
 
 module.exports.putLikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
-    .then(card => res.send({ data: card }))
+    .then((like) => {
+      if (!like) {
+        res.status(404).send({ message: 'Запрошенный id не найден' })
+        return;
+      }
+
+      res.send({ data: like })
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'ошибка в запросе' })
@@ -53,7 +67,14 @@ module.exports.putLikeCard = (req, res) => {
 
 module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
-    .then(card => res.send({ data: card }))
+    .then((like) => {
+      if (!like) {
+        res.status(404).send({ message: 'Запрошенный id не найден' })
+        return;
+      }
+
+      res.send({ data: like })
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'ошибка в запросе' })
