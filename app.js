@@ -3,8 +3,10 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const routerUsers = require('./routes/users');
+
 const routerCards = require('./routes/cards');
 
+const STATUS_NOT_FOUND = 404;
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -23,10 +25,9 @@ app.use(routerUsers);
 app.use(routerCards);
 
 app.use('/*', (req, res) => {
-  res.status(404).send({ message: 'Запрошенные данные не найдены' })
+  res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенные данные не найдены' });
 });
 
 app.listen(PORT, () => {
   console.log(`App работает в порте ${PORT}`);
-})
-
+});

@@ -1,27 +1,29 @@
 const Card = require('../models/card');
 
+const STATUS_BAD_REQUEST = 400;
+const STATUS_NOT_FOUND = 404;
+const STATUS_INTERNAL_SERVER_ERROR = 500;
+
 module.exports.getAllCards = (req, res) => {
   Card.find({})
-    .then(cards => res.send({ data: cards }))
-    .catch(err => res.status(500).send({ message: 'внутренняя ошибка сервера' }))
-}
-
+    .then((cards) => res.send({ data: cards }))
+    .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' }));
+};
 
 module.exports.createCard = (req, res) => {
   const owner = req.user._id;
   const { name, link } = req.body;
 
   Card.create({ name, link, owner })
-    .then(newCard => res.send({ data: newCard }))
+    .then((newCard) => res.send({ data: newCard }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'ошибка в запросе' })
+        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
       } else {
-        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
       }
-    })
+    });
 };
-
 
 module.exports.deleteCardOnId = (req, res) => {
   const id = req.params.cardId;
@@ -29,57 +31,55 @@ module.exports.deleteCardOnId = (req, res) => {
   Card.findByIdAndRemove(id)
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Запрошенный id не найден' })
+        res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
         return;
       }
 
-      res.send({ data: card })
+      res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'ошибка в запросе' })
+        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
       } else {
-        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
       }
-    })
-}
-
+    });
+};
 
 module.exports.putLikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        res.status(404).send({ message: 'Запрошенный id не найден' })
+        res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
         return;
       }
 
-      res.send({ data: like })
+      res.send({ data: like });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'ошибка в запросе' })
+        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
       } else {
-        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
       }
-    })
-}
-
+    });
+};
 
 module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        res.status(404).send({ message: 'Запрошенный id не найден' })
+        res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
         return;
       }
 
-      res.send({ data: like })
+      res.send({ data: like });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'ошибка в запросе' })
+        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
       } else {
-        res.status(500).send({ message: 'внутренняя ошибка сервера' })
+        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
       }
-    })
-}
+    });
+};
