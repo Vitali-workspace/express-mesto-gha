@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
 
 const STATUS_BAD_REQUEST = 400;
 const STATUS_NOT_FOUND = 404;
@@ -29,18 +30,22 @@ module.exports.getUserId = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((newUser) => {
-      res.send({ data: newUser });
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
-      } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
-      }
-    });
+  const { name, about, avatar, email, password } = req.body;
+  // хешируем пароль
+  bcrypt.hash(newUser.password, 10)
+    .then((hash) => {
+      User.create({ name, about, avatar, email, password: hash })
+        .then((newUser) => {
+          res.send({ data: newUser });
+        })
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+          } else {
+            res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+          }
+        });
+    }).catch(err => console.log('ошибка хеширования'));
 };
 
 module.exports.updateProfile = (req, res) => {
