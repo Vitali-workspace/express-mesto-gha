@@ -16,6 +16,21 @@
           "_id"
         ]
       }
+    ],
+    "object-curly-newline": [
+      "error",
+      {
+        "ObjectExpression": "never",
+        "minProperties": 8,
+        "ObjectPattern": {
+          "multiline": true
+        },
+        "ImportDeclaration": "never",
+        "ExportDeclaration": {
+          "multiline": true,
+          "minProperties": 8
+        }
+      }
     ]
   }
 }
