@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const routerUsers = require('./routes/users');
-
 const routerCards = require('./routes/cards');
+const { login, createUser } = require('./controllers/users');
+
 
 const STATUS_NOT_FOUND = 404;
 
@@ -23,6 +24,8 @@ app.use((req, res, next) => {
 
 app.use(routerUsers);
 app.use(routerCards);
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use('/*', (req, res) => {
   res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенные данные не найдены' });
