@@ -1,9 +1,11 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const STATUS_BAD_REQUEST = 400;
 const STATUS_NOT_FOUND = 404;
 const STATUS_INTERNAL_SERVER_ERROR = 500;
+const UNAUTHORIZED = 401;
 
 module.exports.getAllUsers = (req, res) => {
   User.find({})
@@ -81,5 +83,17 @@ module.exports.updateAvatar = (req, res) => {
       } else {
         res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
       }
+    });
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials({ email, password })
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'name-secret-key', { expiresIn: '7d' });
+      res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true }).end();
+    }).catch(() => {
+      res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
     });
 };
