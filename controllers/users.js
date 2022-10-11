@@ -97,3 +97,19 @@ module.exports.login = (req, res) => {
       res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
     });
 };
+
+module.exports.getMyUser = (req, res) => {
+  const { _id } = req.user;
+
+  User.find({ _id })
+    .then((user) => {
+      if (!user) {
+        res.status(STATUS_NOT_FOUND).send({ message: 'пользователь не найден' });
+      } else {
+        return res.send(user);
+      }
+    })
+    .catch(() => {
+      res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+    });
+}
