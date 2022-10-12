@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 
 const STATUS_BAD_REQUEST = 400;
+const FORBIDDEN = 403;
 const STATUS_NOT_FOUND = 404;
 const STATUS_INTERNAL_SERVER_ERROR = 500;
 
@@ -30,9 +31,16 @@ module.exports.deleteCardOnId = (req, res) => {
 
   Card.findByIdAndRemove(id)
     .then((card) => {
+      const owner = req.user._id;
+      const otherUser = card.user._id;
+
       if (!card) {
         res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
         return;
+      }
+
+      if (owner !== otherUser) {
+        return res.status(FORBIDDEN).send({ message: 'Нет прав на удаление карточки' });
       }
 
       res.send({ data: card });
