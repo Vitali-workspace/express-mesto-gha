@@ -1,6 +1,6 @@
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
 
 const STATUS_BAD_REQUEST = 400;
 const STATUS_NOT_FOUND = 404;
@@ -47,7 +47,7 @@ module.exports.createUser = (req, res) => {
             res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
           }
         });
-    }).catch(err => console.log('ошибка хеширования'));
+    }).catch(() => console.log('ошибка хеширования'));
 };
 
 module.exports.updateProfile = (req, res) => {
@@ -86,15 +86,17 @@ module.exports.updateAvatar = (req, res) => {
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
-  User.findUserByCredentials({ email, password })
+  console.log('логин введён', `${email}, ${password}`); //!
+  User.findUserByCredentials(email, password)
     .then((user) => {
+      console.log(user); //!
       const token = jwt.sign({ _id: user._id }, 'name-secret-key', { expiresIn: '7d' });
       res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true }).end();
     }).catch(() => {
       res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
+      next(); //!
     });
 };
 
@@ -105,11 +107,10 @@ module.exports.getMyUser = (req, res) => {
     .then((user) => {
       if (!user) {
         res.status(STATUS_NOT_FOUND).send({ message: 'пользователь не найден' });
-      } else {
-        return res.send(user);
       }
+      return res.send(user);
     })
     .catch(() => {
       res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
     });
-}
+};

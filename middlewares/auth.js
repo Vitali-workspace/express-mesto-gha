@@ -7,9 +7,9 @@ module.exports = (req, res, next) => {
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
     return res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
-  } else {
-    const token = authorization.replace('Bearer ', '');
   }
+  const token = authorization.replace('Bearer ', '');
+
 
   let payload;
 
@@ -20,5 +20,5 @@ module.exports = (req, res, next) => {
   }
 
   req.user = payload;
-  next();
-}
+  return next();
+};

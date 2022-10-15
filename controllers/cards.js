@@ -36,11 +36,10 @@ module.exports.deleteCardOnId = (req, res) => {
 
       if (!card) {
         res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
-        return;
       }
 
       if (owner !== otherUser) {
-        return res.status(FORBIDDEN).send({ message: 'Нет прав на удаление карточки' });
+        res.status(FORBIDDEN).send({ message: 'Нет прав на удаление карточки' });
       }
 
       res.send({ data: card });

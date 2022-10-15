@@ -39,22 +39,19 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email })
     .select('+password')
     .then((user) => {
-
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
-      } else {
-
-        return bcrypt.compare(password, user.password)
-          .then((matched) => {
-            if (!matched) {
-              return Promise.reject(new Error('Неправильные почта или пароль'));
-            } else {
-              return user;
-            }
-          }).catch(err => console.log('ошибка схемы проверки пользователя'));
       }
-    })
-}
+
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          return user;
+        }).catch(() => console.log('ошибка схемы проверки пользователя'));
+    });
+};
 
 
 module.exports = mongoose.model('user', userSchema);

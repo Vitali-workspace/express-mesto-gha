@@ -22,23 +22,23 @@ router.post('/cards', celebrate({
 
 
 router.delete('/cards/:cardId', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required(),
-  }),
+  params: Joi.object().keys(
+    { cardId: Joi.string().required() },
+  ),
 }), deleteCardOnId);
 
 
 router.put('/cards/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required(),
-  }),
+  params: Joi.object().keys(
+    { cardId: Joi.string().required() },
+  ),
 }), putLikeCard);
 
 
 router.delete('/cards/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required(),
-  }),
+  params: Joi.object().keys(
+    { cardId: Joi.string().required() },
+  ),
 }), dislikeCard);
 
 module.exports = router;
