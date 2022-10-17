@@ -10,6 +10,7 @@ const {
   dislikeCard,
 } = require('../controllers/cards');
 
+
 router.get('/cards', getAllCards);
 
 router.post('/cards', celebrate({

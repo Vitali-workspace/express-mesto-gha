@@ -2,7 +2,6 @@ const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const regUrl = require('../utils/validationLink');
 
-
 const {
   getAllUsers,
   getUserId,
@@ -10,6 +9,7 @@ const {
   updateAvatar,
   getMyUser,
 } = require('../controllers/users');
+
 
 router.get('/users', getAllUsers);
 router.get('/users/me', getMyUser);
