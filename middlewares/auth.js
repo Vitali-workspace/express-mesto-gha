@@ -1,22 +1,22 @@
 const jwt = require('jsonwebtoken');
+const UnauthorizedError = require('../errors/UnauthorizedError');
+require('dotenv').config();
 
-const UNAUTHORIZED = 401;
+const { tokenSecret = 'dev-secret-key' } = process.env;
+
 
 module.exports = (req, res, next) => {
-  const { authorization } = req.headers;
+  const cookieWithToken = req.cookies.jwt;
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
+  if (!cookieWithToken) {
+    return next(new UnauthorizedError('авторизация не пройдена'));
   }
-  const token = authorization.replace('Bearer ', '');
-
-
   let payload;
 
   try {
-    payload = jwt.verify(token, 'name-secret-key');
+    payload = jwt.verify(cookieWithToken, tokenSecret);
   } catch {
-    return res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
+    return next(new UnauthorizedError('авторизация не пройдена'));
   }
 
   req.user = payload;
