@@ -2,37 +2,42 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const STATUS_BAD_REQUEST = 400;
-const STATUS_NOT_FOUND = 404;
-const STATUS_INTERNAL_SERVER_ERROR = 500;
-const UNAUTHORIZED = 401;
+const UnauthorizedError = require('../errors/UnauthorizedError');
+const PageNotFoundError = require('../errors/PageNotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const ConflictError = require('../errors/ConflictError');
 
-module.exports.getAllUsers = (req, res) => {
+require('dotenv').config();
+
+const { tokenSecret = 'dev-secret-key' } = process.env;
+
+
+module.exports.getAllUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' }));
+    .catch((err) => next(err));
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.userId)
     .then((id) => {
       if (!id) {
-        res.status(STATUS_NOT_FOUND).send({ message: 'пользователь не найден' });
-        return;
+        next(new PageNotFoundError('Запрошенный id не найден'));
       }
       res.send({ data: id });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
+
   // хешируем пароль
   bcrypt.hash(password, 10)
     .then((hash) => {
@@ -41,16 +46,20 @@ module.exports.createUser = (req, res) => {
           res.send({ data: newUser });
         })
         .catch((err) => {
+          if (err.code === 11000) {
+            next(new ConflictError('этот email уже существует'));
+          }
+
           if (err.name === 'ValidationError') {
-            res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+            next(new BadRequestError('ошибка в запросе'));
           } else {
-            res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+            next(err);
           }
         });
-    }).catch(() => console.log('ошибка хеширования'));
+    }).catch(next);
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
@@ -59,16 +68,16 @@ module.exports.updateProfile = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else if (err.name === 'CastError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'не удалось получить данные' });
+        next(new BadRequestError('не удалось получить данные'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
@@ -77,40 +86,37 @@ module.exports.updateAvatar = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else if (err.name === 'CastError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'не удалось получить данные' });
+        next(new BadRequestError('не удалось получить данные'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  console.log('логин введён', `${email}, ${password}`); //!
+
   User.findUserByCredentials(email, password)
     .then((user) => {
-      console.log(user); //!
-      const token = jwt.sign({ _id: user._id }, 'name-secret-key', { expiresIn: '7d' });
-      res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true }).end();
+      const token = jwt.sign({ _id: user._id }, tokenSecret, { expiresIn: '7d' });
+      res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true });
+      res.send({ token });
     }).catch(() => {
-      res.status(UNAUTHORIZED).send({ message: 'внутренняя ошибка сервера' });
-      next(); //!
+      next(new UnauthorizedError('ошибка авторизации'));
     });
 };
 
-module.exports.getMyUser = (req, res) => {
+module.exports.getMyUser = (req, res, next) => {
   const { _id } = req.user;
 
   User.find({ _id })
     .then((user) => {
       if (!user) {
-        res.status(STATUS_NOT_FOUND).send({ message: 'пользователь не найден' });
+        next(new PageNotFoundError('Запрошенный пользователь не найден'));
       }
       return res.send(user);
     })
-    .catch(() => {
-      res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
-    });
+    .catch((err) => next(err));
 };
