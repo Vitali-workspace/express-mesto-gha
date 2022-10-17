@@ -1,17 +1,16 @@
 const Card = require('../models/card');
+const ForbiddenError = require('../errors/ForbiddenError');
+const PageNotFoundError = require('../errors/PageNotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
 
-const STATUS_BAD_REQUEST = 400;
-const FORBIDDEN = 403;
-const STATUS_NOT_FOUND = 404;
-const STATUS_INTERNAL_SERVER_ERROR = 500;
 
-module.exports.getAllCards = (req, res) => {
+module.exports.getAllCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' }));
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const owner = req.user._id;
   const { name, link } = req.body;
 
@@ -19,14 +18,14 @@ module.exports.createCard = (req, res) => {
     .then((newCard) => res.send({ data: newCard }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
 
-module.exports.deleteCardOnId = (req, res) => {
+module.exports.deleteCardOnId = (req, res, next) => {
   const id = req.params.cardId;
 
   Card.findByIdAndRemove(id)
@@ -35,58 +34,56 @@ module.exports.deleteCardOnId = (req, res) => {
       const otherUser = card.user._id;
 
       if (!card) {
-        res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
+        next(new PageNotFoundError('Запрошенный id не найден'));
       }
 
       if (owner !== otherUser) {
-        res.status(FORBIDDEN).send({ message: 'Нет прав на удаление карточки' });
+        next(new ForbiddenError('Нет прав на удаление карточки'));
       }
 
       res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
 
-module.exports.putLikeCard = (req, res) => {
+module.exports.putLikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
-        return;
+        next(new PageNotFoundError('Запрошенный id не найден'));
       }
 
       res.send({ data: like });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        res.status(STATUS_NOT_FOUND).send({ message: 'Запрошенный id не найден' });
-        return;
+        next(new PageNotFoundError('Запрошенный id не найден'));
       }
 
       res.send({ data: like });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(STATUS_BAD_REQUEST).send({ message: 'ошибка в запросе' });
+        next(new BadRequestError('ошибка в запросе'));
       } else {
-        res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'внутренняя ошибка сервера' });
+        next(err);
       }
     });
 };
