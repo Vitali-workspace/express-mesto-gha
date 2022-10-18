@@ -6,8 +6,8 @@ const regUrl = require('../utils/validationLink');
 
 router.post('/signin', celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
+    email: Joi.string().invalid(null, '').required().email(),
+    password: Joi.string().invalid(null, '').required(),
   }),
 }), login);
 
@@ -17,8 +17,8 @@ router.post('/signup', celebrate({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().pattern(regUrl),
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
+    email: Joi.string().invalid(null, '').required().email(),
+    password: Joi.string().invalid(null, '').required(),
   }),
 }), createUser);
 
