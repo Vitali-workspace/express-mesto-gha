@@ -10,6 +10,7 @@ module.exports.getAllCards = (req, res, next) => {
     .catch(next);
 };
 
+
 module.exports.createCard = (req, res, next) => {
   const owner = req.user._id;
   const { name, link } = req.body;
@@ -58,8 +59,7 @@ module.exports.putLikeCard = (req, res, next) => {
         return next(new PageNotFoundError('Карточка не найдена'));
       }
       return res.send({ data: like });
-    })
-    .catch(next);
+    }).catch(next);
 };
 
 
@@ -67,16 +67,8 @@ module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        next(new PageNotFoundError('Карточка не найдена'));
+        return next(new PageNotFoundError('Карточка не найдена'));
       }
-
-      res.send({ data: like });
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('ошибка в запросе'));
-      } else {
-        next(err);
-      }
-    });
+      return res.send({ data: like });
+    }).catch(next);
 };
