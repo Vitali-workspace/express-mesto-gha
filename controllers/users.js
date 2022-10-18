@@ -117,9 +117,9 @@ module.exports.login = (req, res, next) => {
 
 
 module.exports.getMyUser = (req, res, next) => {
-  const { _id } = req.user;
+  const myId = req.user._id;
 
-  User.find({ _id })
+  User.findById(myId)
     .then((user) => {
       if (!user) {
         next(new PageNotFoundError('Запрошенный пользователь не найден'));
