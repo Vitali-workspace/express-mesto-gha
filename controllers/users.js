@@ -18,6 +18,7 @@ module.exports.getAllUsers = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+
 module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.userId)
     .then((id) => {
@@ -35,16 +36,18 @@ module.exports.getUserId = (req, res, next) => {
     });
 };
 
+
 module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar, email, password, _id } = req.body;
+  const { name, about, avatar, email, password } = req.body;
 
   // хешируем пароль
   bcrypt.hash(password, 10)
     .then((hash) => {
       User.create({ name, about, avatar, email, password: hash })
         .then((newUser) => {
+          const { _id } = newUser;
           console.log(newUser);
-          res.send({ data: name, about, avatar, email, _id });
+          res.send({ name, about, avatar, email, _id });
         })
         .catch((err) => {
           if (err.code === 11000) {
@@ -59,6 +62,7 @@ module.exports.createUser = (req, res, next) => {
         });
     }).catch(next);
 };
+
 
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
@@ -78,6 +82,7 @@ module.exports.updateProfile = (req, res, next) => {
     });
 };
 
+
 module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const userId = req.user._id;
@@ -96,6 +101,7 @@ module.exports.updateAvatar = (req, res, next) => {
     });
 };
 
+
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
@@ -108,6 +114,7 @@ module.exports.login = (req, res, next) => {
       next(new UnauthorizedError('ошибка авторизации'));
     });
 };
+
 
 module.exports.getMyUser = (req, res, next) => {
   const { _id } = req.user;
