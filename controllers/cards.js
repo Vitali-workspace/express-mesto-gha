@@ -25,56 +25,49 @@ module.exports.createCard = (req, res, next) => {
     });
 };
 
+
 module.exports.deleteCardOnId = (req, res, next) => {
   const id = req.params.cardId;
+  const owner = req.user._id;
 
-  Card.findByIdAndRemove(id)
+  function deleteCard() {
+    Card.findByIdAndRemove(id)
+      .then((card) => res.send(card))
+      .catch(next);
+  }
+
+  Card.findById(id)
     .then((card) => {
-      const owner = req.user._id;
-      const otherUser = card.user._id;
-
       if (!card) {
         next(new PageNotFoundError('Запрошенный id не найден'));
       }
 
-      if (owner !== otherUser) {
-        next(new ForbiddenError('Нет прав на удаление карточки'));
+      if (owner === card.owner.toString()) {
+        return deleteCard();
       }
 
-      res.send({ data: card });
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('ошибка в запросе'));
-      } else {
-        next(err);
-      }
-    });
+      return next(new ForbiddenError('Нет прав на удаление карточки'));
+    }).catch(next);
 };
+
 
 module.exports.putLikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        next(new PageNotFoundError('Запрошенный id не найден'));
+        return next(new PageNotFoundError('Карточка не найдена'));
       }
-
-      res.send({ data: like });
+      return res.send({ data: like });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('ошибка в запросе'));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
+
 
 module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .then((like) => {
       if (!like) {
-        next(new PageNotFoundError('Запрошенный id не найден'));
+        next(new PageNotFoundError('Карточка не найдена'));
       }
 
       res.send({ data: like });
