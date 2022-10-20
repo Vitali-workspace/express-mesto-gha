@@ -42,6 +42,7 @@ module.exports.deleteCardOnId = (req, res, next) => {
         Card.findByIdAndRemove(id)
           .then((item) => res.send(item))
           .catch(next);
+        return;
       }
 
       next(new ForbiddenError('Нет прав на удаление карточки'));
