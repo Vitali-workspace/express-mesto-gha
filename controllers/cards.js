@@ -47,7 +47,7 @@ module.exports.deleteCardOnId = (req, res, next) => {
 
       next(new ForbiddenError('Нет прав на удаление карточки'));
     }).catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         next(new BadRequestError('ошибка в запросе'));
       } else {
         next(err);
@@ -64,7 +64,7 @@ module.exports.putLikeCard = (req, res, next) => {
       }
       return res.send({ data: like });
     }).catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         next(new BadRequestError('ошибка в запросе'));
       } else {
         next(err);
@@ -81,7 +81,7 @@ module.exports.dislikeCard = (req, res, next) => {
       }
       return res.send({ data: like });
     }).catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         next(new BadRequestError('ошибка в запросе'));
       } else {
         next(err);
