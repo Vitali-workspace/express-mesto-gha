@@ -41,14 +41,21 @@ module.exports.deleteCardOnId = (req, res, next) => {
     .then((card) => {
       if (!card) {
         next(new PageNotFoundError('Запрошенный id не найден'));
+        return;
       }
 
       if (owner === card.owner.toString()) {
-        return deleteCard();
+        deleteCard();
       }
 
-      return next(new ForbiddenError('Нет прав на удаление карточки'));
-    }).catch(next);
+      next(new ForbiddenError('Нет прав на удаление карточки'));
+    }).catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('ошибка в запросе'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 
@@ -59,7 +66,13 @@ module.exports.putLikeCard = (req, res, next) => {
         return next(new PageNotFoundError('Карточка не найдена'));
       }
       return res.send({ data: like });
-    }).catch(next);
+    }).catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('ошибка в запросе'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 
@@ -70,5 +83,11 @@ module.exports.dislikeCard = (req, res, next) => {
         return next(new PageNotFoundError('Карточка не найдена'));
       }
       return res.send({ data: like });
-    }).catch(next);
+    }).catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('ошибка в запросе'));
+      } else {
+        next(err);
+      }
+    });
 };
