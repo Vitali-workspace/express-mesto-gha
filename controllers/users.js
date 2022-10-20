@@ -2,12 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const UnauthorizedError = require('../errors/UnauthorizedError');
 const PageNotFoundError = require('../errors/PageNotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
-
-require('dotenv').config();
 
 const { tokenSecret = 'dev-secret-key' } = process.env;
 
@@ -24,6 +21,7 @@ module.exports.getUserId = (req, res, next) => {
     .then((id) => {
       if (!id) {
         next(new PageNotFoundError('Запрошенный id не найден'));
+        return;
       }
       res.send({ data: id });
     })
@@ -46,12 +44,12 @@ module.exports.createUser = (req, res, next) => {
       User.create({ name, about, avatar, email, password: hash })
         .then((newUser) => {
           const { _id } = newUser;
-          console.log(newUser);
           res.send({ name, about, avatar, email, _id });
         })
         .catch((err) => {
           if (err.code === 11000) {
             next(new ConflictError('этот email уже существует'));
+            return;
           }
 
           if (err.name === 'ValidationError') {
@@ -110,9 +108,7 @@ module.exports.login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, tokenSecret, { expiresIn: '7d' });
       res.cookie('jwt', token, { maxAge: 3600000, httpOnly: true });
       res.send({ token });
-    }).catch(() => {
-      next(new UnauthorizedError('ошибка авторизации'));
-    });
+    }).catch(next);
 };
 
 
@@ -123,8 +119,9 @@ module.exports.getMyUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         next(new PageNotFoundError('Запрошенный пользователь не найден'));
+        return;
       }
-      return res.send(user);
+      res.send(user);
     })
-    .catch((err) => next(err));
+    .catch(next);
 };
