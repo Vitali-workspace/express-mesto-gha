@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const UnauthorizedError = require('../errors/UnauthorizedError');
-require('dotenv').config();
 
 const { tokenSecret = 'dev-secret-key' } = process.env;
 
