@@ -31,12 +31,6 @@ module.exports.deleteCardOnId = (req, res, next) => {
   const id = req.params.cardId;
   const owner = req.user._id;
 
-  function deleteCard() {
-    Card.findByIdAndRemove(id)
-      .then((card) => res.send(card))
-      .catch(next);
-  }
-
   Card.findById(id)
     .then((card) => {
       if (!card) {
@@ -45,7 +39,9 @@ module.exports.deleteCardOnId = (req, res, next) => {
       }
 
       if (owner === card.owner.toString()) {
-        deleteCard();
+        Card.findByIdAndRemove(id)
+          .then((item) => res.send(item))
+          .catch(next);
       }
 
       next(new ForbiddenError('Нет прав на удаление карточки'));
