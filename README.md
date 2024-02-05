@@ -22,6 +22,7 @@
 <h2>&#10032; Используемые технологии</h2>
 
 > [!IMPORTANT]
+> - JavaScript
 > - NodeJS
 > - Express.js
 > - Мongoose
